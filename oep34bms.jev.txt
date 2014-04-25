@@ -1,0 +1,29 @@
+﻿Rewrote Tree in order to use arrays. 
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#	modified:   src/Tree.java
+#	renamed:    src/Tree.java -> src/Tree_old.java
+#
+# Changes not staged for commit:
+#   (use "git add/rm <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#	modified:   bin/Main.class
+#	deleted:    bin/Tree$Node.class
+#	modified:   bin/Tree.class
+#	modified:   bin/Utility.class
+#	modified:   src/Main.java
+#	modified:   src/Tree_old.java
+#	modified:   src/Utility.java
+#
+# Untracked files:
+#   (use "git add <file>..." to include in what will be committed)
+#
+#	bin/.gitignore
+#	pred.csv
+

@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 import java.util.Random;
 
-public class Tree {
+public class Tree_old {
 
 	// 42000 [id]
 	public static int[]					id;
@@ -16,7 +16,7 @@ public class Tree {
 	public static Random				r	= new Random();
 	public static ArrayList<Integer>	trainHelper;
 
-	public Tree(int maxHeight) {
+	public Tree_old(int maxHeight) {
 		baseNode = new Node(0);
 		this.maxHeight = maxHeight;
 		leafIndex = 0;
