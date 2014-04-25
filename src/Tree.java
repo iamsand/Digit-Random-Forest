@@ -8,67 +8,84 @@ public class Tree {
 	// 42000 [index], [256 pixels as a vector]
 	public static int[][]				dataTrain;
 
-	public Node							baseNode;
-	public int[]						modes;				// This array corresponds to the bottom row of the tree. It gives us the classification.
-	public int							maxHeight;
-	public int							leafIndex;			// This is used for numbering all the leaves.
+	public int[]						tree_thresh;
+	public int[]						tree_pixel;
+	public int							tree_sz;		// This is the number of nodes in the tree - 1, since we are counting from 0.
 
-	public static Random				r	= new Random();
+	public int[]						modes;			// This array corresponds to the bottom row of the tree. It gives us the classification.
+	public int							maxHeight;
+
+	public static Random				r;
 	public static ArrayList<Integer>	trainHelper;
 
+	public static void init() {
+		r = new Random();
+		trainHelper = new ArrayList<Integer>();
+		for (int i = 0; i < 42000; i++)
+			trainHelper.add(i);
+	}
+
 	public Tree(int maxHeight) {
-		baseNode = new Node(0);
 		this.maxHeight = maxHeight;
-		leafIndex = 0;
-		build(baseNode);
-		if (trainHelper == null) {
-			trainHelper = new ArrayList<Integer>();
-			for (int i = 0; i < 42000; i++)
-				trainHelper.add(i);
-		}
-		modes = new int[leafIndex];
-		train(trainHelper, baseNode);
+		build_strct();
+		train();
 	}
 
-	public void build(Node p) {
-		if (p.height >= maxHeight) {
-			p.num = leafIndex;
-			leafIndex++;
-			return;
-		}
-		Node n1 = new Node(p.height + 1);
-		Node n2 = new Node(p.height + 1);
-		p.childL = n1;
-		p.childR = n2;
-		build(n1);
-		build(n2);
+	public void build_strct() {
+		tree_sz = (1 << maxHeight + 1) - 2;
+		tree_thresh = new int[tree_sz];
+		tree_pixel = new int[tree_sz];
+		for (int i = 0; i < tree_pixel.length; i++)
+			tree_pixel[i] = r.nextInt(28 * 28);
+		for (int i = 0; i < tree_thresh.length; i++)
+			tree_thresh[i] = r.nextInt(256);
 	}
 
-	// Pass this method an array of indicies.
-	public static int getModeOf(ArrayList<Integer> al) {
+	public int left(int n) {
+		return 2 * n + 1;
+	}
+
+	public int right(int n) {
+		return 2 * n + 2;
+	}
+
+	// returns the [0,9] classification based on an arraylist of inds of training data.
+	public int mode_from_inds(ArrayList<Integer> al) {
 		int[] d = new int[10];
-		for (int i : al)
-			d[id[i]]++;
+		for (int i = 0; i < al.size(); i++)
+			d[id[al.get(i)]]++;
 		return Utility.indexOfMax(d);
 	}
 
-	public void train(ArrayList<Integer> al, Node n) {
-		if (n.height == maxHeight) {
-			modes[n.num] = getModeOf(al);
+	// assumes the index is a leaf node.
+	public int ind_to_mode_ind(int index) {
+		// int tmp = modes.length - (tree_sz - index) - 1;
+		// System.out.println("map " + index + " to " + tmp);
+		return modes.length - (tree_sz - index) - 1;
+	}
+
+	public void train() {
+		modes = new int[1 << maxHeight];
+		train_help(trainHelper, 0);
+	}
+
+	public void train_help(ArrayList<Integer> al, int index) {
+		if (left(index) > tree_sz) {
+			modes[ind_to_mode_ind(index)] = mode_from_inds(al);
 			return;
 		}
 		ArrayList<Integer> left = new ArrayList<Integer>();
 		ArrayList<Integer> right = new ArrayList<Integer>();
 		for (int i = 0; i < al.size(); i++) {
-			if (dataTrain[al.get(i)][n.pixelIndex] < n.pixelVal)
+			if (dataTrain[al.get(i)][tree_pixel[index]] < tree_thresh[index])
 				left.add(al.get(i));
 			else
 				right.add(al.get(i));
 		}
-		train(left, n.childL);
-		left = null; // Optimization?
-		train(right, n.childR);
-		right = null; // Optimization?
+		train_help(left, left(index));
+		left = null;
+		train_help(right, right(index));
+		right = null;
 	}
 
 	public int run(int[] i) {
@@ -76,31 +93,14 @@ public class Tree {
 			System.out.println("i length not 256");
 			return -1;
 		}
-		return runHelp(i, baseNode);
+		return runHelp(i, 0);
 	}
 
-	public int runHelp(int[] i, Node n) {
-		if (n.height == maxHeight)
-			return modes[n.num];
-		if (i[n.pixelIndex] < n.pixelVal)
-			return runHelp(i, n.childL);
-		return runHelp(i, n.childR);
-	}
-
-	class Node {
-		int		height;
-		int		num;
-
-		int		pixelIndex;
-		int		pixelVal;
-
-		Node	childL;
-		Node	childR;
-
-		public Node(int height) {
-			this.height = height;
-			pixelIndex = r.nextInt(28 * 28);
-			pixelVal = r.nextInt(256);
-		}
+	public int runHelp(int[] i, int index) {
+		if (left(index) > tree_sz)
+			return modes[ind_to_mode_ind(index)];
+		if (i[tree_pixel[index]] < tree_thresh[index])
+			return runHelp(i, left(index));
+		return runHelp(i, right(index));
 	}
 }
